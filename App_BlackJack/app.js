@@ -208,8 +208,8 @@ function resetPlayingArea() {
 
   announcementNode.innerText = "";
 
-  dealerCardsNode = document.querySelector('#dealer-cards');
-  playerCardsNode = document.querySelector('#player-cards');
+  dealerCardsNode.innerHTML = "";
+  playerCardsNode.innerHTML = "";
 
 
 }
@@ -286,13 +286,12 @@ function dealerPlays() {
     return;
   }
 
+  dealerScore = computeScore(dealerCards);
+  dealerScoreNode.innerText = dealerScore;
+
   if (dealerScore < 17) {
     // a delay here makes for nicer game play because of suspence.
     setTimeout(()=>hitMe('dealer'), 900)
-
-    dealerScore = computeScore(dealerCards);
-    dealerScoreNode.innerText = dealerScore;
-
   }
   else if (dealerScore > 21) {
     roundWon = true;
@@ -312,7 +311,7 @@ function dealerPlays() {
   else {
     roundWon = true;
     // ... Update the UI to reflect this...
-    announcementNode.textContent = "Dealer Win!";
+    announcementNode.textContent = "Player Win!";
   }
 
 }
