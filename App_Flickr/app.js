@@ -23,6 +23,8 @@
 
     var flickr = flickrInput.value;
 
+    flickrPhoto.innerText = "loading... ";
+
     getPhotosForSeach(flickr)
     .then(function(photos){
 

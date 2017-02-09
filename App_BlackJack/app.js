@@ -18,31 +18,31 @@ var roundTied = false;
 // These nodes will be used often to update the UI of the game.
 
 // assign this variable to the DOM node which has id="dealer-number"
-var dealerScoreNode
+var dealerScoreNode = document.querySelector('#dealer-number');
 
 // select the DOM node which has id="player-number"
-var playerScoreNode
+var playerScoreNode = document.querySelector('#player-number');
 
 // select the DOM node which has id="dealer-cards"
-var dealerCardsNode
+var dealerCardsNode = document.querySelector('#dealer-cards');
 
 // select the DOM node which has id="player-cards"
-var playerCardsNode
+var playerCardsNode = document.querySelector('#player-cards');
 
 // selec the DOM node which has id="announcement"
-var announcementNode
+var announcementNode = document.querySelector('#announcement');
 
 // selec the DOM node which has id=new-game"
-var newDeckNode
+var newDeckNode = document.querySelector('#new-game');
 
 // selec the DOM node which has id="next-hand"
-var nextHandNode
+var nextHandNode = document.querySelector('#next-hand');
 
 // selec the DOM node which has id=""hit-me""
-var hitMeNode
+var hitMeNode = document.querySelector('#hit-me');
 
 // selec the DOM node which has id="stay"
-var stayNode
+var stayNode = document.querySelector('#stay');
 
 
 // On click events
@@ -70,6 +70,21 @@ function getNewDeck() {
   to provide the player with the Next Hand button.
   5) Hide the hit-me and stay buttons by changing their style.display to "none"
   6) Catch any errors that may occur on the fetch and log them */
+  resetPlayingArea();
+
+  fetch('https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=6')
+  .then(response => response.json())
+  .then(function(data) {
+    deckID = data.deck_id
+
+    nextHandNode.style.display = "inline";
+    hitMeNode.style.display = "none";
+    stayNode.style.display = "none";
+
+  })
+  .catch(function(err){
+    console.log(err);
+  })
 }
 
 function computeScore(cards) {
@@ -98,6 +113,45 @@ function newHand() {
   announcementNode.textContent = "BlackJack! You Win!";
   8) catch and log possible error from the fetch.
   */
+
+  resetPlayingArea();
+
+  fetch(`https://deckofcardsapi.com/api/deck/${deckID}/draw/?count=4`)
+  .then(response => response.json())
+  .then(function(data){
+    console.log(data);
+
+    dealerCards.push(data.cards[0]);
+    dealerCards.push(data.cards[1]);
+    playerCards.push(data.cards[2]);
+    playerCards.push(data.cards[3]);
+
+    dealerCards.forEach(function(cards,index){
+
+      console.log(cards.image);
+
+      var image = document.createElement('img');
+      image.setAttribute('src', cards.image);
+      image.setAttribute('alt', cards.code);
+
+      dealerCardsNode.appendChild(image);
+
+    });
+
+    playerCards.forEach(function(cards,index){
+
+      console.log(cards.image);
+
+      var image = document.createElement('img');
+      image.setAttribute('src', cards.image);
+      image.setAttribute('alt', cards.code);
+
+      playerCardsNode.appendChild(image);
+
+    });
+
+  })
+
 }
 
 
