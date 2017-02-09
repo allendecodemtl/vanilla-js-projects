@@ -90,6 +90,22 @@ function getNewDeck() {
 function computeScore(cards) {
   // This function receives an array of cards and returns the total score.
   // ...
+  var temp = 0;
+  let hasAce = false;
+  cards.forEach(function(card){
+    if (card.value === "JACK" || card.value === "QUEEN" || card.value === "KING"){
+      temp = +temp + 10;
+    } else if (card.value === "ACE") {
+      hasAce = true;
+      temp = +temp + 1;
+    } else {
+      temp = +temp + +card.value;
+    }
+  })
+
+  temp = hasAce && temp < 12 ? temp+10 : temp;
+
+  return temp;
 }
 
 
@@ -113,6 +129,7 @@ function newHand() {
   announcementNode.textContent = "BlackJack! You Win!";
   8) catch and log possible error from the fetch.
   */
+
 
   resetPlayingArea();
 
@@ -138,6 +155,10 @@ function newHand() {
 
     });
 
+    dealerScore = computeScore(dealerCards);
+    dealerScoreNode.innerText = dealerScore;
+
+
     playerCards.forEach(function(cards,index){
 
       console.log(cards.image);
@@ -149,6 +170,17 @@ function newHand() {
       playerCardsNode.appendChild(image);
 
     });
+
+    playerScore = computeScore(playerCards);
+    playerScoreNode.innerText = playerScore;
+
+    if (playerScore === 21){
+      roundWon = true;
+      announcementNode.textContent = "BlackJack! You Win!";
+    }
+
+    hitMeNode.style.display = "inline";
+    stayNode.style.display = "inline";
 
   })
 
@@ -162,6 +194,24 @@ function resetPlayingArea() {
   be displaying data from a previous round in the game. (ex: dealerScoreNode)
   3) Remove all <img> elements inside dealerCardsNode and playerCardsNode.
   */
+  dealerCards = [];
+  playerCards = [];
+  playerScore = 0;
+  dealerScore = 0;
+  roundLost = false;
+  roundWon = false;
+  roundTied = false;
+
+
+  dealerScoreNode.innerText = 0;
+  playerScoreNode.innerText = 0;
+
+  announcementNode.innerText = "";
+
+  dealerCardsNode = document.querySelector('#dealer-cards');
+  playerCardsNode = document.querySelector('#player-cards');
+
+
 }
 
 
@@ -181,6 +231,49 @@ function hitMe(target) {
   after having appended the <img> to the game play UI.
   7) Catch error and log....
   */
+
+  if (roundLost || roundWon || roundTied){
+    return;
+  }
+
+  fetch(`https://deckofcardsapi.com/api/deck/${deckID}/draw/?count=1`)
+  .then(response => response.json())
+  .then(function(data){
+    console.log(data);
+
+    if (target === 'player'){
+
+      playerCards.push(data.cards[0]);
+      var image = document.createElement('img');
+      image.setAttribute('src', data.cards[0].image);
+      image.setAttribute('alt', data.cards[0].code);
+
+      playerCardsNode.appendChild(image);
+
+      playerScore = computeScore(playerCards);
+      playerScoreNode.innerText = playerScore;
+
+      if (playerScore === 21){
+        roundWon = true;
+        announcementNode.textContent = "BlackJack! You Win!";
+      } else if (playerScore > 21){
+        roundLost = true;
+        announcementNode.textContent = "You Lost!";
+      }
+
+    } else if (target === "dealer"){
+
+      dealerCards.push(data.cards[0]);
+      var image = document.createElement('img');
+      image.setAttribute('src', data.cards[0].image);
+      image.setAttribute('alt', data.cards[0].code);
+
+      dealerCardsNode.appendChild(image);
+
+      dealerPlays();
+
+    }
+  });
 }
 
 function dealerPlays() {
@@ -189,26 +282,37 @@ function dealerPlays() {
   2) Compute the dealer's score by calling the computeScore() function and
   update the UI to reflect this.
   */
+  if (roundLost || roundWon || roundTied){
+    return;
+  }
 
   if (dealerScore < 17) {
     // a delay here makes for nicer game play because of suspence.
     setTimeout(()=>hitMe('dealer'), 900)
+
+    dealerScore = computeScore(dealerCards);
+    dealerScoreNode.innerText = dealerScore;
+
   }
   else if (dealerScore > 21) {
     roundWon = true;
     // ... Update the UI to reflect this...
+    announcementNode.textContent = "Player Win!";
   }
   else if (dealerScore > playerScore) {
     roundLost = true;
     // ... Update the UI to reflect this...
+    announcementNode.textContent = "Dealer Win!";
   }
   else if (dealerScore === playerScore) {
     roundTied = true;
     // ... Update the UI to reflect this...
+    announcementNode.textContent = "Tied!";
   }
   else {
     roundWon = true;
     // ... Update the UI to reflect this...
+    announcementNode.textContent = "Dealer Win!";
   }
 
 }
